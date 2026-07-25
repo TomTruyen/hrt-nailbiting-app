@@ -17,9 +17,10 @@ import com.tomtruyen.cusp.ui.components.BottomNavBar
 import com.tomtruyen.cusp.ui.navigation.Screen
 import com.tomtruyen.cusp.ui.screens.HomeScreen
 import com.tomtruyen.cusp.ui.screens.InsightsScreen
-import com.tomtruyen.cusp.ui.screens.LearnScreen
 import com.tomtruyen.cusp.ui.screens.ProgressScreen
-import com.tomtruyen.cusp.ui.screens.SettingsScreen
+import com.tomtruyen.cusp.ui.screens.UrgeDetectedScreen
+import com.tomtruyen.cusp.ui.screens.AfterInterruptScreen
+import com.tomtruyen.cusp.ui.screens.WeeklyReviewScreen
 import com.tomtruyen.cusp.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -41,16 +42,50 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) { innerPadding ->
+                    val sharedViewModel: com.tomtruyen.cusp.ui.screens.SharedViewModel = org.koin.androidx.compose.koinViewModel()
                     NavHost(
                         navController = navController,
                         startDestination = Screen.Home,
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable<Screen.Home> { HomeScreen() }
-                        composable<Screen.Insights> { InsightsScreen() }
-                        composable<Screen.Progress> { ProgressScreen() }
-                        composable<Screen.Learn> { LearnScreen() }
-                        composable<Screen.Settings> { SettingsScreen() }
+                        composable<Screen.Home> { 
+                            HomeScreen(
+                                onNoticeUrge = { navController.navigate(Screen.UrgeDetected) },
+                                onCaughtBiting = { navController.navigate(Screen.AfterInterrupt) },
+                                viewModel = sharedViewModel
+                            ) 
+                        }
+                        composable<Screen.Insights> { 
+                            InsightsScreen(
+                                onNavigateToWeeklyReview = { navController.navigate(Screen.WeeklyReview) },
+                                viewModel = sharedViewModel
+                            ) 
+                        }
+                        composable<Screen.Progress> { 
+                            ProgressScreen(viewModel = sharedViewModel) 
+                        }
+                        composable<Screen.UrgeDetected> { 
+                            UrgeDetectedScreen(
+                                onBack = { navController.popBackStack() },
+                                onResisted = { 
+                                    sharedViewModel.logUrgeResisted()
+                                    navController.navigate(Screen.AfterInterrupt) 
+                                }
+                            ) 
+                        }
+                        composable<Screen.AfterInterrupt> { 
+                            AfterInterruptScreen(
+                                onSave = { 
+                                    sharedViewModel.logCaughtBiting(2, "Working", "Bored")
+                                    navController.navigate(Screen.Home) { popUpTo(Screen.Home) { inclusive = false } } 
+                                }
+                            ) 
+                        }
+                        composable<Screen.WeeklyReview> {
+                            WeeklyReviewScreen(
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
                     }
                 }
             }

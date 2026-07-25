@@ -28,9 +28,7 @@ fun BottomNavBar(
     val items = listOf(
         BottomNavItem("Home", R.drawable.ic_home, Screen.Home),
         BottomNavItem("Insights", R.drawable.ic_insights, Screen.Insights),
-        BottomNavItem("Progress", R.drawable.ic_progress, Screen.Progress),
-        BottomNavItem("Learn", R.drawable.ic_learn, Screen.Learn),
-        BottomNavItem("Settings", R.drawable.ic_settings, Screen.Settings)
+        BottomNavItem("Progress", R.drawable.ic_progress, Screen.Progress)
     )
 
     NavigationBar {

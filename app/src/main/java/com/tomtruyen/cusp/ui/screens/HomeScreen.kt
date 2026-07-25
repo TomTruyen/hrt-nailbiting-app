@@ -9,11 +9,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.unit.dp
+import com.tomtruyen.cusp.data.local.CheckInEntity
 import com.tomtruyen.cusp.R
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(onNoticeUrge: () -> Unit = {}, onCaughtBiting: () -> Unit = {}, viewModel: SharedViewModel? = null) {
+    val checkIns by viewModel?.checkIns?.collectAsState(initial = emptyList<CheckInEntity>()) ?: mutableStateOf(emptyList<CheckInEntity>())
+    
+    // Calculate simple stats
+    val currentTime = System.currentTimeMillis()
+    val todayStart = java.util.Calendar.getInstance().apply {
+        set(java.util.Calendar.HOUR_OF_DAY, 0)
+        set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0)
+        set(java.util.Calendar.MILLISECOND, 0)
+    }.timeInMillis
+    
+    val todayCheckIns = checkIns.filter { it.timestamp >= todayStart }
+    val timesCaught = todayCheckIns.count { it.isBite }
+    val timesNoticed = todayCheckIns.count { !it.isBite }
+    val timeSinceLast = checkIns.maxByOrNull { it.timestamp }?.timestamp?.let { 
+        val diffMinutes = (currentTime - it) / (1000 * 60)
+        if (diffMinutes < 60) "$diffMinutes min ago" else "${diffMinutes / 60} h ago"
+    } ?: "N/A"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +95,7 @@ fun HomeScreen() {
                         )
                     }
                     Text(
-                        text = "42 min ago",
+                        text = timeSinceLast,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
@@ -102,7 +125,7 @@ fun HomeScreen() {
                         )
                     }
                     Text(
-                        text = "4",
+                        text = timesCaught.toString(),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
@@ -134,7 +157,7 @@ fun HomeScreen() {
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "3",
+                                text = timesNoticed.toString(),
                                 style = MaterialTheme.typography.headlineLarge,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -159,7 +182,7 @@ fun HomeScreen() {
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "1",
+                                text = timesCaught.toString(),
                                 style = MaterialTheme.typography.headlineLarge,
                                 color = MaterialTheme.colorScheme.error
                             )
@@ -204,7 +227,7 @@ fun HomeScreen() {
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { /* TODO */ },
+            onClick = onNoticeUrge,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
@@ -224,7 +247,7 @@ fun HomeScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { /* TODO */ },
+            onClick = onCaughtBiting,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
